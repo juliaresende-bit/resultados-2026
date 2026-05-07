@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Priorização de Ativos 2026 — Embrapa Milho e Sorgo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --green-900: #0d2e1a; --green-800: #1a4d2e; --green-700: #1e6638;
+  --green-600: #2a8a4a; --green-500: #3aaa62; --green-400: #5dc47d;
+  --green-200: #b8e8c8; --green-100: #e3f5ea; --green-50:  #f2faf4;
+  --gold-600: #b07d24; --gold-500: #d4962a; --gold-400: #e8b845; --gold-100: #fdf5e0;
+  --blue-600: #1355a3; --blue-500: #1a6fc9; --blue-400: #3d8de0; --blue-100: #e6f0fb;
+  --gray-900: #111a13; --gray-800: #1f2b22; --gray-700: #304235; --gray-600: #4a6352;
+  --gray-400: #7a9984; --gray-300: #a8bfad; --gray-200: #d1dfd4; --gray-100: #edf3ee;
+  --gray-50: #f8fbf8; --white: #ffffff;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-xl: 24px;
+  --shadow-card: 0 2px 12px rgba(13,46,26,0.08), 0 1px 3px rgba(13,46,26,0.05);
+  --shadow-hover: 0 6px 24px rgba(13,46,26,0.14), 0 2px 8px rgba(13,46,26,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--gray-50); color: var(--gray-900); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+.hero { background: linear-gradient(135deg, var(--green-900) 0%, var(--green-800) 55%, var(--green-700) 100%); position: relative; overflow: hidden; padding: 0; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 80% 120%, rgba(58,170,98,0.18) 0%, transparent 60%), radial-gradient(ellipse 50% 80% at -10% 50%, rgba(212,150,42,0.10) 0%, transparent 55%); }
+.hero::after { content: ''; position: absolute; top: -60px; right: -60px; width: 340px; height: 340px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.06); }
+.hero-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 52px 32px 44px; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green-400); background: rgba(58,170,98,0.12); border: 1px solid rgba(58,170,98,0.2); padding: 5px 12px; border-radius: 20px; margin-bottom: 20px; }
+.hero-title { font-family: var(--font-serif); font-size: clamp(28px, 4vw, 46px); font-weight: 400; color: var(--white); line-height: 1.18; margin-bottom: 14px; letter-spacing: -0.01em; }
+.hero-title em { font-style: italic; color: var(--green-400); }
+.hero-sub { font-size: 15px; color: rgba(255,255,255,0.62); font-weight: 300; max-width: 560px; margin-bottom: 36px; }
+.metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.metric-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); border-radius: var(--radius-lg); padding: 18px 20px 16px; transition: background 0.2s; }
+.metric-card:hover { background: rgba(255,255,255,0.11); }
+.metric-icon { font-size: 20px; margin-bottom: 8px; display: block; line-height: 1; }
+.metric-val { font-family: var(--font-serif); font-size: 36px; font-weight: 400; color: var(--white); line-height: 1; margin-bottom: 4px; }
+.metric-lbl { font-size: 11.5px; color: rgba(255,255,255,0.55); font-weight: 400; line-height: 1.3; }
+
+.chart-outer { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 32px 0 36px; }
+.chart-inner { max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+.chart-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.chart-title { font-family: var(--font-serif); font-size: 22px; font-weight: 400; color: var(--gray-900); line-height: 1.2; }
+.chart-subtitle { font-size: 13px; color: var(--gray-600); margin-top: 4px; }
+.legend-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--gray-700); font-weight: 400; }
+.legend-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.chart-wrap { width: 100%; height: 240px; }
+
+.tabs-outer { background: var(--white); border-bottom: 1px solid var(--gray-200); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+.tabs-inner { max-width: 1100px; margin: 0 auto; padding: 0 32px; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.tabs-inner::-webkit-scrollbar { display: none; }
+.tab { padding: 16px 18px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--gray-600); border-bottom: 2.5px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color 0.15s; font-family: var(--font-sans); letter-spacing: 0.01em; }
+.tab:hover { color: var(--green-700); }
+.tab.active { color: var(--green-800); border-bottom-color: var(--green-600); font-weight: 600; }
+
+.content-outer { max-width: 1100px; margin: 0 auto; padding: 36px 32px 60px; }
+.section { display: none; }
+.section.active { display: block; }
+.section-hd { margin-bottom: 28px; }
+.section-hd h2 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; color: var(--gray-900); line-height: 1.2; margin-bottom: 6px; }
+.section-hd p { font-size: 14px; color: var(--gray-600); }
+.tier-label { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-600); margin: 28px 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-200); }
+.tier-label:first-child { margin-top: 0; }
+.count-badge { font-size: 11px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 20px; padding: 2px 10px; color: var(--gray-600); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; margin-bottom: 8px; }
+.card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 18px 20px 16px; box-shadow: var(--shadow-card); transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s; display: flex; flex-direction: column; gap: 10px; }
+.card:hover { box-shadow: var(--shadow-hover); border-color: var(--green-300, #7dcf9a); transform: translateY(-1px); }
+.card-meta { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.badge { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 5px; letter-spacing: 0.03em; }
+.trl7 { background: #d4edbb; color: #1e4d07; }
+.trl6 { background: #c8e3fd; color: #0b3f78; }
+.trl5 { background: #dde5fc; color: #2d2880; }
+.trl4 { background: #fce8c2; color: #6a3a00; }
+.trl3 { background: #fde2e2; color: #6a0000; }
+.trl0 { background: var(--gray-100); color: var(--gray-600); }
+.badge-tipo { font-size: 11px; color: var(--gray-600); background: var(--gray-100); border-radius: 5px; padding: 3px 8px; font-weight: 400; }
+.star { color: var(--gold-500); font-size: 15px; line-height: 1; margin-left: auto; }
+.card-desc { font-size: 13px; color: var(--gray-800); line-height: 1.55; flex: 1; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--gray-100); }
+.resp-label { font-size: 11px; color: var(--gray-400); font-weight: 400; }
+.destaque-tag { font-size: 10px; font-weight: 600; color: var(--green-700); background: var(--green-100); border: 1px solid var(--green-200); border-radius: 4px; padding: 2px 7px; text-transform: lowercase; letter-spacing: 0.02em; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 14px; font-size: 12.5px; border: 1.5px solid var(--gray-200); border-radius: 20px; cursor: pointer; background: var(--white); color: var(--gray-700); font-family: var(--font-sans); font-weight: 500; transition: all 0.15s; }
+.filter-btn:hover { border-color: var(--green-400); color: var(--green-700); }
+.filter-btn.on { background: var(--green-800); color: var(--white); border-color: var(--green-800); }
+.insight-box { background: var(--blue-100); border-left: 3.5px solid var(--blue-500); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 14px 18px; }
+.insight-box p { font-size: 13.5px; color: var(--gray-800); line-height: 1.6; }
+.insight-box strong { color: var(--gray-900); }
+.warn-box { background: var(--gold-100); border-left: 3.5px solid var(--gold-500); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 14px 18px; }
+.warn-box p { font-size: 13.5px; color: var(--gray-800); line-height: 1.6; }
+.warn-box strong { color: var(--gray-900); }
+#insights-content .insight-box, #insights-content .warn-box { margin-bottom: 12px; }
+.events-intro { margin-bottom: 20px; }
+.empty { font-size: 14px; color: var(--gray-400); padding: 2rem 0; text-align: center; }
+.footer { background: var(--green-900); color: rgba(255,255,255,0.4); text-align: center; font-size: 12px; padding: 20px 32px; letter-spacing: 0.04em; }
+
+@media (max-width: 700px) {
+  .hero-inner { padding: 36px 20px 32px; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .chart-inner, .content-outer { padding-left: 20px; padding-right: 20px; }
+  .tabs-inner { padding: 0 16px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .chart-wrap { height: 200px; }
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.hero-eyebrow { animation: fadeUp 0.5s ease both; }
+.hero-title   { animation: fadeUp 0.55s 0.07s ease both; }
+.hero-sub     { animation: fadeUp 0.55s 0.14s ease both; }
+.metrics-row  { animation: fadeUp 0.55s 0.21s ease both; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Planejamento Estratégico · 2026
+    </div>
+    <h1 class="hero-title">Priorização de <em>Ativos Previstos</em><br>para 2026</h1>
+    <p class="hero-sub">Portfólio de transferência de tecnologia e comunicação — Embrapa Milho e Sorgo. Visão consolidada para tomada de decisão em TT, comunicação e eventos.</p>
+    <div class="metrics-row" id="metrics"></div>
+  </div>
+</div>
+
+<div class="chart-outer">
+  <div class="chart-inner">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Distribuição por TRL e Categoria</div>
+        <div class="chart-subtitle">Nº de resultados agrupados por maturidade tecnológica e área de conhecimento</div>
+      </div>
+      <div class="legend-row" id="chartLegend"></div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart2"></canvas></div>
+  </div>
+</div>
+
+<div class="tabs-outer">
+  <div class="tabs-inner">
+    <button class="tab active"  onclick="showTab('launch')">🚀 TRL 6/7</button>
+    <button class="tab"         onclick="showTab('pipeline')">🔬 TRL 4/5</button>
+    <button class="tab"         onclick="showTab('insights')">💡 Insights</button>
+    <button class="tab"         onclick="showTab('events')">📢 Ideias de Eventos</button>
+    <button class="tab"         onclick="showTab('all')">📋 Todos os Ativos</button>
+  </div>
+</div>
+
+<div class="content-outer">
+  <div id="launch" class="section active">
+    <div class="section-hd">
+      <h2>Ativos prontos para lançamento</h2>
+      <p>Tecnologias em TRL 6–7 — candidatas diretas a eventos de lançamento, notas à imprensa e negociações de licenciamento.</p>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div id="pipeline" class="section">
+    <div class="section-hd">
+      <h2>Pipeline de transferência de tecnologia</h2>
+      <p>Tecnologias em TRL 4–5 — monitorar evolução e preparar comunicação antecipada.</p>
+    </div>
+    <div id="list2"></div>
+  </div>
+  <div id="insights" class="section">
+    <div class="section-hd">
+      <h2>Insights e recomendações estratégicas</h2>
+      <p>Análise do portfólio para subsidiar decisões de TT e comunicação em 2026.</p>
+    </div>
+    <div id="insights-content"></div>
+  </div>
+  <div id="events" class="section">
+    <div class="section-hd">
+      <h2>Ideias sugeridas de eventos</h2>
+      <p>Sugestões de ações de divulgação, capacitação e eventos para 2026.</p>
+    </div>
+    <div id="list3"></div>
+  </div>
+  <div id="all" class="section">
+    <div class="section-hd">
+      <h2>Todos os ativos previstos para 2026</h2>
+      <p>Portfólio completo, ordenado por TRL decrescente.</p>
+    </div>
+    <div class="filter-bar" id="filters"></div>
+    <div id="list4"></div>
+  </div>
+</div>
+
+<div class="footer">Embrapa Milho e Sorgo · Portfólio 2026 · Uso interno</div>
+
+<script>
+const data = [
+  {id:10,trl:7,cat:"Tecnologias",tipo:"Prática Agropecuária",desc:"Práticas agropecuárias de intensificação sustentável visando melhoria de índices produtivos vegetal e animal, aumento do teor de matéria orgânica e estoque de carbono em solos arenosos, com foco na produção de Carne Carbono Neutro — Oeste da Bahia.",resp:"MARCIA CRISTINA TEIXEIRA DA SILVEIR",destaque:"Carne Carbono Neutro — TRL máximo"},
+  {id:86,trl:7,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo granífero de alta produtividade de grãos e resistente a pulgão, para plantio na segunda safra na região do Cerrado, em sucessão à cultura da soja.",resp:"CICERO BESERRA DE MENEZES",destaque:"sorgo granífero — lançamento"},
+  {id:125,trl:7,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Novo bioinseticida formulado à base de Baculovirus para controle de Spodoptera frugiperda em sistema de produção com milho, com redução do uso de inseticidas químicos.",resp:"FERNANDO HERCOS VALICENTE",destaque:"biopesticida baculovirus"},
+  {id:128,trl:7,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Bioinseticida formulado à base da cepa Bt1641 de Bacillus thuringiensis, para controle simultâneo das pragas Helicoverpa armigera, Chrysodeixis includens e Spodoptera frugiperda, em sistemas produtivos com ênfase em milho, soja e algodão.",resp:"FERNANDO HERCOS VALICENTE",destaque:"Bt1641 — controle múltiplas pragas"},
+  {id:9,trl:6,cat:"Tecnologias",tipo:"Prática Agropecuária",desc:"Práticas sustentáveis de manejo do solo, fertilização estratégica e manejo do pastejo, visando dinâmica e sequestro de carbono em solos arenosos do Oeste da Bahia.",resp:"FLAVIA CRISTINA DOS SANTOS",destaque:"carbono/sequestro"},
+  {id:12,trl:6,cat:"Tecnologias",tipo:"Prática Agropecuária",desc:"Processo de aplicação integrada de aminoácidos para redução de infestação de cigarrinhas e da severidade do complexo dos enfezamentos do milho.",resp:"DAGMA DIONISIA DA SILVA ARAUJO",destaque:"enfezamentos — controle inovador"},
+  {id:31,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo agropecuário para controle de Helicoverpa armigera em milho, por meio de biopesticidade à base de B. thuringiensis para redução do uso de inseticidas químicos.",resp:"FERNANDO HERCOS VALICENTE"},
+  {id:32,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo agropecuário para controle de Helicoverpa armigera em soja, por meio de biopesticidade à base de B. thuringiensis para redução do uso de inseticidas químicos.",resp:"FERNANDO HERCOS VALICENTE"},
+  {id:33,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo agropecuário para controle de Helicoverpa armigera em algodão, por meio de biopesticidade à base de B. thuringiensis para redução do uso de inseticidas químicos.",resp:"FERNANDO HERCOS VALICENTE"},
+  {id:44,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo de manejo da cigarrinha D. maidis em sistemas de produção de milho no Paraná, baseado no controle biológico e químico, em cultivares com diferentes níveis de resistência aos enfezamentos.",resp:"LUCIANO VIANA COTA",destaque:"cigarrinha/enfezamentos — Paraná"},
+  {id:45,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Sistema de produção de sorgo biomassa e sorgo sacarino, maximizando a produtividade e qualidade da matéria-prima para uso em processos de geração de biogás no Brasil.",resp:"RAFAEL AUGUSTO DA COSTA PARRELLA",destaque:"sorgo bioenergia/biogás"},
+  {id:58,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo de armazenagem de grãos de milho e soja para uso em silos pré-fabricados de concreto, visando manutenção da qualidade de grãos, com menores custos e baixo impacto ambiental.",resp:"MARCO AURELIO GUERRA PIMENTEL"},
+  {id:60,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo de secagem e aeração de grãos de milho e soja para uso em silos pré-fabricados de concreto, visando manutenção da qualidade de grãos, com menores custos e baixo impacto ambiental.",resp:"MARCO AURELIO GUERRA PIMENTEL"},
+  {id:74,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho desenvolvida para uso como fonte de resistência ao complexo dos enfezamentos para as principais regiões produtoras de milho do Brasil.",resp:"LAURO JOSE MOREIRA GUIMARAES",destaque:"resistência enfezamentos"},
+  {id:78,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de milho de baixo custo de sementes adaptado aos sistemas de produção de base familiar da região Nordeste.",resp:"LAURO JOSE MOREIRA GUIMARAES",destaque:"agricultura familiar — Nordeste"},
+  {id:79,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho com alta capacidade combinatória para produtividade de grãos e estabilidade, destinada ao uso como parental de cultivares para a segunda safra do Brasil Central.",resp:"PAULO EVARISTO DE OLIVEIRA GUIMARAE"},
+  {id:83,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho com alta capacidade combinatória para produtividade e estabilidade em épocas recomendadas e atrasadas da segunda safra da região de transição Sul/Centro.",resp:"ROBERTO DOS SANTOS TRINDADE"},
+  {id:90,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de sorgo granífero com propriedades bioativas promotoras da saúde humana, para plantio na região do Cerrado e Triângulo Mineiro.",resp:"CICERO BESERRA DE MENEZES",destaque:"sorgo bioativo — saúde humana"},
+  {id:94,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo forrageiro, com alta produtividade de forragem e estabilidade de produção, alta qualidade nutricional, adaptado à segunda safra no Cerrado.",resp:"RAFAEL AUGUSTO DA COSTA PARRELLA",destaque:"sorgo forrageiro — pecuária"},
+  {id:95,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo sacarino com alta produtividade de colmos e alto teor de açúcar no caldo, ampliando a oferta de matéria-prima para produção de bioenergia.",resp:"RAFAEL AUGUSTO DA COSTA PARRELLA",destaque:"sorgo sacarino — bioenergia"},
+  {id:96,trl:6,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo biomassa com alta produtividade e alto teor de fibra, adaptado ao cultivo no Brasil, ampliando a oferta de matéria-prima para produção de bioenergia.",resp:"RAFAEL AUGUSTO DA COSTA PARRELLA",destaque:"sorgo biomassa — bioenergia"},
+  {id:107,trl:6,cat:"Tecnologias",tipo:"Ativos Cartográficos",desc:"Mapeamento das áreas com pastagem e de níveis de degradação na região centro-noroeste de MG.",resp:"THOMAZ CORREA E CASTRO DA COSTA",destaque:"mapeamento territorial MG"},
+  {id:110,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Recomendações de época de plantio e manejo de irrigação para o cultivo de sorgo biomassa na Caatinga, visando maximizar a produção de biomassa para geração de energia.",resp:"ALEXANDRE FERREIRA DA SILVA"},
+  {id:117,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Conjunto de práticas de manejo para terminação de bovinos de corte, adaptadas aos sistemas integrados dos biomas Pampa e Mata Atlântica, validando Diretrizes da marca-conceito Carne Baixo Carbono (CBC).",resp:"MARCIA CRISTINA TEIXEIRA DA SILVEIR",destaque:"Carne Baixo Carbono"},
+  {id:134,trl:6,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo otimizado para manejo de irrigação em pivôs centrais, com base em uso de software para integração de dados de solo, clima e fisiologia vegetal, coletados em tempo real.",resp:"PAULO EMILIO PEREIRA DE ALBUQUERQUE",destaque:"software irrigação — pivô"},
+  {id:138,trl:6,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Bioinseticida formulado à base de Baculovirus para o controle de Helicoverpa armigera em sistemas produtivos com ênfase em milho, soja e algodão.",resp:"FERNANDO HERCOS VALICENTE",destaque:"biopesticida baculovirus"},
+  {id:140,trl:6,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Bioinseticida formulado à base de Baculovirus para o controle de Spodoptera frugiperda em sistemas produtivos com ênfase em milho, soja e algodão.",resp:"FERNANDO HERCOS VALICENTE",destaque:"biopesticida baculovirus"},
+  {id:142,trl:6,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Bioinseticida formulado à base de Baculovirus para o controle de Chrysodeixis includens em sistemas produtivos com ênfase em milho, soja e algodão.",resp:"FERNANDO HERCOS VALICENTE",destaque:"biopesticida baculovirus"},
+  {id:7,trl:5,cat:"Tecnologias",tipo:"Produto Agropecuário ou Industrial",desc:"Kit imunocromatográfico para detecção rápida e simultânea de fitoplasma (Maize bushy stunt) e espiroplasma (Spiroplasma kunkelii) presentes em plantas de milho e vetores (cigarrinhas).",resp:"UBIRACI GOMES DE PAULA LANA",destaque:"diagnóstico rápido enfezamentos"},
+  {id:26,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Recomendação de manejo fitossanitário para pragas, doenças e plantas daninhas em lavouras de soja, milho e algodão cultivadas em Plintossolos Pétricos.",resp:"RODRIGO VERAS DA COSTA"},
+  {id:30,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Sistema de semeadura intercalar do milho nas entrelinhas da soja, antes da colheita, para sistemas soja/milho na safrinha adaptado para o Oeste da Bahia.",resp:"DECIO KARAM"},
+  {id:37,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Sistema de produção de híbridos elite de milho para maior resposta à inoculação por bactérias promotoras de crescimento de plantas, em diferentes condições de fertilização nitrogenada e fosfatada, no Cerrado.",resp:"ROBERTO DOS SANTOS TRINDADE"},
+  {id:41,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Sistema de produção de milho silagem adaptado aos preceitos da agricultura regenerativa (múltiplas espécies/eficiência de área), com elevado rendimento de forragem e melhor valor nutricional no cerrado mineiro.",resp:"ALVARO VILELA DE RESENDE",destaque:"agricultura regenerativa"},
+  {id:42,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Sistema de produção de milho silagem regenerativo com menor pegada ambiental: maior sequestro de carbono, redução de perdas de N e menor emissão de GEE, no cerrado mineiro.",resp:"MIGUEL MARQUES GONTIJO NETO",destaque:"carbono/clima"},
+  {id:49,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Conjunto de práticas para inoculação de fungos micorrízicos arbusculares em plantio mecanizado de manivas de mandioca para maior economia e eficiência na aplicação de inoculante micorrízico.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:50,trl:5,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Inoculante composto por estirpe(s) de fungos micorrízicos arbusculares capaz(es) de aumentar a produtividade da cultura da mandioca.",resp:"FRANCISCO ADRIANO DE SOUZA",destaque:"inoculante micorrízico — mandioca"},
+  {id:52,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Conjunto de práticas para inoculação de fungos micorrízicos arbusculares para a cultura do milho visando o aumento de produtividade.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:53,trl:5,cat:"Tecnologias",tipo:"Processo Industrial",desc:"Processo de produção de inoculante de fungos micorrízicos arbusculares para mandioca obtido em sistema asséptico monoxênico com culturas de raízes transformadas Ri T-DNA.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:54,trl:5,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Fungicida a base de nanocompositos de nióbio para controle de doenças foliares da cultura do milho e com baixo impacto na colonização micorrízica e ao desenvolvimento de plantas.",resp:"RODRIGO VERAS DA COSTA",destaque:"nióbio — fungicida inovador"},
+  {id:64,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milheto para pastejo (2ª safra), plantio solteiro ou consorciado, com elevada produtividade de biomassa e baixo fator de reprodução de nematoides.",resp:"JOSE ANGELO NOGUEIRA DE MENEZES JUN"},
+  {id:71,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar transgênica de milho com eventos VTPRO para controle de lepidópteros-praga e manejo de plantas daninhas nas regiões produtoras do Brasil.",resp:"ROBERTO DOS SANTOS TRINDADE",destaque:"milho transgênico VTPRO"},
+  {id:72,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar transgênica de milho com eventos VTPRO, alta produtividade de grãos, para controle de lepidópteros-praga e manejo de plantas daninhas nas regiões do Cerrado.",resp:"ROBERTO DOS SANTOS TRINDADE",destaque:"milho transgênico VTPRO"},
+  {id:77,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de milho verde adaptado aos sistemas de produção de agricultura familiar, com menor demanda de insumos e maior eficiência no uso de nutrientes.",resp:"PAULO EVARISTO DE OLIVEIRA GUIMARAE",destaque:"milho verde — agricultura familiar"},
+  {id:80,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar híbrido de milho competitivo em produtividade de grãos na segunda safra do Brasil Central, sob diferentes níveis de investimento.",resp:"PAULO EVARISTO DE OLIVEIRA GUIMARAE"},
+  {id:81,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho com maior rendimento de etanol e competitivo em produtividade de grãos na segunda safra do Brasil Central.",resp:"PAULO EVARISTO DE OLIVEIRA GUIMARAE",destaque:"milho para etanol"},
+  {id:84,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho de baixo custo de semente selecionado pela produtividade e estabilidade em épocas recomendadas e atrasadas da região subtropical do Brasil.",resp:"ROBERTO DOS SANTOS TRINDADE"},
+  {id:88,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo granífero de alta produtividade de grãos e resistente a ergot, para plantio na região sul e/ou locais de elevada altitude.",resp:"CICERO BESERRA DE MENEZES",destaque:"sorgo — região sul/altitude"},
+  {id:97,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo granífero com maior rendimento de etanol, adaptado ao sistema de produção de segunda safra, em sucessão à soja.",resp:"MARIA LUCIA FERREIRA SIMEONE",destaque:"sorgo para etanol"},
+  {id:109,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Práticas agronômicas em sistema de plantio direto com rotação, sucessão e consorciação do milho com braquiária, visando incremento de produção de grãos, forragem e sustentabilidade com aumento do carbono fixado no solo.",resp:"RAMON COSTA ALVARENGA"},
+  {id:129,trl:5,cat:"Tecnologias",tipo:"Cultivar",desc:"Híbrido de sorgo formado por linhagens introgredidas com o gene SbMATE, mais produtivos sob diferentes condições ambientais, incluindo solos ácidos.",resp:"CICERO BESERRA DE MENEZES",destaque:"sorgo tolerante Al tóxico"},
+  {id:133,trl:5,cat:"Tecnologias",tipo:"Software para Clientes Externos",desc:"Software web para integração e gerenciamento de dados de campo (solo, clima e fisiologia vegetal) para monitoramento automático de pivô central e otimização do manejo de irrigação de culturas de grãos.",resp:"PAULO EMILIO PEREIRA DE ALBUQUERQUE",destaque:"software irrigação — digital"},
+  {id:136,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo agropecuário de manejo de P e K para uso mais eficiente de fertilizantes em sistema plantio direto de algodão e grãos no Oeste de Mato Grosso.",resp:"ALVARO VILELA DE RESENDE"},
+  {id:145,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo agropecuário para validação agronômica e uso de um inoculante para mitigação do estresse hídrico e nutricional (especialmente fósforo) em culturas de grãos.",resp:"CHRISTIANE ABREU DE OLIVEIRA PAIVA",destaque:"inoculante anti-estresse hídrico"},
+  {id:146,trl:5,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Processo de aplicação de bactérias do gênero Bacillus promotoras de crescimento de plantas em milho, com definição de doses capazes de aumentar a produtividade na região Sudeste.",resp:"SYLVIA MORAIS DE SOUSA TINOCO"},
+  {id:3,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho (linhagem e/ou híbrido) tolerante aos molicutes, agentes causais dos enfezamentos, para a região Sudeste do Brasil.",resp:"ROBERTO DOS SANTOS TRINDADE",destaque:"enfezamentos — tolerância"},
+  {id:47,trl:4,cat:"Tecnologias",tipo:"Processo Industrial",desc:"Processo de produção de inóculo de fungos micorrízicos arbusculares em sistema aberto para a cultura da mandioca, otimizado para maior produtividade e menor tempo de produção.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:65,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milheto para pastejo (1ª safra), plantio solteiro ou consorciado, com elevada produtividade de biomassa e baixo fator de reprodução de nematoides.",resp:"FLAVIO DESSAUNE TARDIN"},
+  {id:68,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho geneticamente editada expressando maior digestibilidade de fibra visando uso como forragem conservada para as diferentes regiões produtoras de milho.",resp:"NEWTON PORTILHO CARNEIRO",destaque:"edição gênica — digestibilidade"},
+  {id:69,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar transgênica de milho introgredida com o evento BTMAX, para o controle de lepidópteros-praga nas diferentes regiões produtoras de milho em todo o Brasil.",resp:"NEWTON PORTILHO CARNEIRO",destaque:"BTMAX — controle biológico"},
+  {id:73,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho transgênica expressando proteínas antibacterianas, para aumento de resistência a bactérias fitopatogênicas do milho, para as regiões produtoras do Brasil.",resp:"AISY BOTEGA BALDONI TARDIN"},
+  {id:75,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho de alto potencial para grãos/silagem, com maior resistência ao complexo dos enfezamentos, para plantio na região subtropical e na safrinha de transição Sul/Centro.",resp:"ROBERTO DOS SANTOS TRINDADE"},
+  {id:99,trl:4,cat:"Tecnologias",tipo:"Processo Industrial",desc:"Processo de produção de hambúrguer plant-based com grãos de sorgo e isolado proteico de feijão-caupi com qualidade tecnológica e nutricional similar ao produto disponível no mercado.",resp:"VALERIA APARECIDA VIEIRA QUEIROZ",destaque:"sorgo plant-based — food tech"},
+  {id:101,trl:4,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Manejo de doenças foliares do gergelim para as condições do cerrado brasileiro em cultivo de segunda safra.",resp:"RODRIGO VERAS DA COSTA"},
+  {id:102,trl:4,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Bionematicida à base de Bacillus como alternativa biológica para controle dos fitonematoides Pratylenchus brachyurus e/ou Meloidogyne enterolobii e/ou M. incógnita, no sistema soja-milho.",resp:"FERNANDO HERCOS VALICENTE",destaque:"bionematicida biológico"},
+  {id:106,trl:4,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Recomendação de estratégias de manejo integrado de práticas agropecuárias para produção de grãos e forragem, com foco em soja, na região centro-noroeste de Minas Gerais, com redução na pegada de carbono.",resp:"MIGUEL MARQUES GONTIJO NETO"},
+  {id:112,trl:4,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Herbicida à base de Nióbio seletivo para soja e milho capaz de suprimir plantas daninhas de difícil controle como buva, caruru, capim-amargoso e picão-preto.",resp:"ALEXANDRE FERREIRA DA SILVA",destaque:"nióbio — herbicida inovador"},
+  {id:114,trl:4,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Fertilizante/bioestimulante à base de aminoácidos derivados do processo de tratamento de couro (wet blue), com foco em Nitrogênio para a cultura do milho.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:116,trl:4,cat:"Tecnologias",tipo:"Processo Agropecuário",desc:"Conjunto de práticas agrícolas que combinam fertilizante/bioestimulante de aminoácidos (wet blue) com fungicidas para doenças foliares e aumento de produtividade do milho.",resp:"FRANCISCO ADRIANO DE SOUZA"},
+  {id:130,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Linhagem elite de sorgo restauradora (R) tolerante ao Al tóxico via introgressão do alelo superior do gene SbMATE.",resp:"CLAUDIA TEIXEIRA GUIMARAES"},
+  {id:131,trl:4,cat:"Tecnologias",tipo:"Cultivar",desc:"Linhagem elite de sorgo mantenedora (B) tolerante ao Al tóxico via introgressão do alelo superior do gene SbMATE.",resp:"JURANDIR VIEIRA DE MAGALHAES"},
+  {id:144,trl:4,cat:"Tecnologias",tipo:"Produto/Insumo agropecuário ou Industrial",desc:"Formulação líquida de biopesticida com duas cepas de Bacillus thuringiensis para o controle de Spodoptera frugiperda e Chrysodeixis includens.",resp:"FERNANDO HERCOS VALICENTE",destaque:"Bt — formulação dupla"},
+  {id:21,trl:3,cat:"Tecnologias",tipo:"Produto Agropecuário ou Industrial",desc:"Inoculante a base de estirpe bacteriana editada geneticamente que seja eficiente na solubilização e/ou mineralização de fósforo.",resp:"UBIRACI GOMES DE PAULA LANA"},
+  {id:22,trl:3,cat:"Tecnologias",tipo:"Produto Agropecuário ou Industrial",desc:"Inoculante à base de estirpe bacteriana editada geneticamente que seja eficiente no uso de nitrogênio.",resp:"ELIANE APARECIDA GOMES"},
+  {id:67,trl:3,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho geneticamente editada expressando maior tolerância ao déficit hídrico para as diferentes regiões produtoras de milho em todo o Brasil.",resp:"NEWTON PORTILHO CARNEIRO"},
+  {id:82,trl:3,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar de milho branco obtida pela recombinação de acessos do BAG de Milho, com atributos superiores em produtividade e sanidade, para região subtropical e transição Sul-Centro.",resp:"FLAVIA FRANCA TEIXEIRA"},
+  {id:100,trl:3,cat:"Tecnologias",tipo:"Processo Industrial",desc:"Processo para produção de hidrogel de amido de sorgo com qualidade tecnológica similar ou superior ao de arroz, aplicável como veículo para compostos bioativos ou fármacos.",resp:"VALERIA APARECIDA VIEIRA QUEIROZ",destaque:"sorgo hidrogel — farma/nutracêutico"},
+  {id:143,trl:3,cat:"Tecnologias",tipo:"Cultivar",desc:"Cultivar transgênica de milho contendo gene de Bt, eficiente no controle de insetos-praga de milho (lagarta do cartucho Spodoptera frugiperda) para regiões tropicais.",resp:"NEWTON PORTILHO CARNEIRO"},
+  {id:0,trl:0,cat:"Tecnologias",tipo:"Metodologia técnico-científica",desc:"Nova metodologia técnico-científica para avaliar o risco e a resiliência agroclimática baseada em índices de produtividade climática e multirriscos para a cultura do milho (seca, chuva na colheita, calor e excesso hídrico).",resp:"CAMILO DE LELIS TEIXEIRA DE ANDRADE"},
+  {id:1,trl:0,cat:"Tecnologias",tipo:"Metodologia técnico-científica",desc:"Aprimoramento de técnicas para detecção rápida dos patógenos fitoplasma e espiroplasma — redução de custo e tempo de diagnóstico dos enfezamentos.",resp:"ISABEL REGINA PRAZERES DE SOUZA"},
+  {id:2,trl:0,cat:"Bases de Conhecimento",tipo:"Banco de Dados",desc:"Conjunto de sequências diferencialmente expressas em milho, associado à resposta à inoculação pelos molicutes (agentes dos enfezamentos). Armazenado no Redape.",resp:"AISY BOTEGA BALDONI TARDIN"},
+  {id:4,trl:0,cat:"Bases de Conhecimento",tipo:"Banco de Dados",desc:"Conjunto de registros estruturados da caracterização de materiais (linhagens e/ou híbridos) de milho quanto à resistência aos enfezamentos, armazenado no Siexp.",resp:"ISABEL REGINA PRAZERES DE SOUZA"},
+  {id:5,trl:0,cat:"Bases de Conhecimento",tipo:"Banco de Dados",desc:"Conjunto de registros sobre práticas agrícolas e gastos com insumos (semeadura, tratos culturais, colheita) em estados com produção de sorgo ≥5% do volume nacional. Armazenado no Redape.",resp:"ALEXANDRE FERREIRA DA SILVA"},
+  {id:6,trl:0,cat:"Bases de Conhecimento",tipo:"Informação Científica",desc:"Composição dos microbiomas de mucilagens de raízes aéreas de sorgo em diferentes condições de cultivo, determinada por sequenciamento de amplicons do gene 16S rRNA.",resp:"SYLVIA MORAIS DE SOUSA TINOCO"},
+  {id:8,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação e TT",desc:"Capacitação de agentes multiplicadores sobre estratégias de intensificação agrícola sustentável com base no protocolo Carne Carbono Neutro (CCN) e culturas para solos arenosos do Oeste da Bahia.",resp:"SILVIO TORRES PESSOA"},
+  {id:11,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Avaliação socioeconômica",desc:"Análise de viabilidade técnica e econômica da aplicação do protocolo Carne Carbono Neutro (CCN) em área de solo arenoso do Oeste da Bahia.",resp:"VINÍCIUS PEREIRA GUIMARÃES"},
+  {id:13,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação e TT",desc:"Capacitação de agentes multiplicadores em Holambra/SP sobre o Quociente de Impacto Ambiental (QIA) como ferramenta de suporte ao registro e recomendação de pacotes tecnológicos.",resp:"DECIO KARAM"},
+  {id:16,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Genes de bactérias diazotróficas relacionados à interação planta-microrganismo para uso como marcadores moleculares e para edição gênica.",resp:"UBIRACI GOMES DE PAULA LANA"},
+  {id:17,trl:0,cat:"Bases de Conhecimento",tipo:"Coleção Biológica",desc:"Banco Ativo de Germoplasma de Milheto organizado, enriquecido e mantido (plataforma Alelo). Em 2026: 200 acessos em campo para multiplicação e 100 caracterizados.",resp:"ISABELA VOLPI FURTINI"},
+  {id:18,trl:0,cat:"Bases de Conhecimento",tipo:"Coleção Biológica",desc:"Banco Ativo de Germoplasma de Milho organizado, enriquecido e mantido (plataforma Alelo). Em 2026: 230 acessos em campo para multiplicação e 100 caracterizados.",resp:"FLAVIA FRANCA TEIXEIRA"},
+  {id:19,trl:0,cat:"Bases de Conhecimento",tipo:"Coleção Biológica",desc:"Banco Ativo de Germoplasma de Sorgo organizado, enriquecido e mantido (plataforma Alelo). Em 2026: 200 acessos em campo para multiplicação e 100 caracterizados.",resp:"ISABELA VOLPI FURTINI"},
+  {id:20,trl:0,cat:"Bases de Conhecimento",tipo:"Coleção Biológica",desc:"Coleção de Microrganismos Multifuncionais e Fitopatogênicos de Milho e Sorgo organizada e mantida (Alelo). Em 2026: 50 estirpes depositadas/caracterizadas em nível de gênero.",resp:"ELIANE APARECIDA GOMES"},
+  {id:23,trl:0,cat:"Bases de Conhecimento",tipo:"Banco de Dados",desc:"Conjunto de dados de cultivares de milho e sorgo incluindo: potencial produtivo, ciclo, recomendação de uso, região de adaptação, resistência a doenças e demais características agronômicas. Armazenado no Redape.",resp:"REGINALDO RESENDE COELHO"},
+  {id:24,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Contribuição a Políticas Públicas",desc:"Suporte ao Projeto Hora de Plantar (Lei nº 17.534/2021 do Ceará), disponibilizando informações técnicas para inserção de cultivares Embrapa nos editais de aquisição de sementes.",resp:"REGINALDO RESENDE COELHO"},
+  {id:25,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Estudo prospectivo",desc:"Estudo prospectivo para inserção de cultivares de milho e sorgo Embrapa na Região Nordeste e no RS: mapeamento de programas de distribuição de sementes e identificação de demandas regionais.",resp:"REGINALDO RESENDE COELHO"},
+  {id:27,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Estudo prospectivo",desc:"Estudo prospectivo da evolução tecnológica do mercado de sementes de milho no Brasil, avaliando possíveis desdobramentos para o posicionamento futuro das cultivares Embrapa.",resp:"JOAO CARLOS GARCIA"},
+  {id:34,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Regiões genômicas e/ou genes com potencial para desenvolvimento de marcadores moleculares em milho, associados à resposta à inoculação por bactérias promotoras de crescimento.",resp:"CLAUDIA TEIXEIRA GUIMARAES"},
+  {id:35,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Genes bacterianos relacionados à interação planta-microrganismo com potencial para marcadores moleculares e/ou edição gênica, visando maior eficiência na colonização e promoção de crescimento.",resp:"SYLVIA MORAIS DE SOUSA TINOCO"},
+  {id:40,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação de produtores e técnicos sobre intensificação de sistema de produção de milho silagem com braquiária em consórcio e ajustes no manejo da adubação, no Cerrado de MG.",resp:"SINVAL RESENDE LOPES"},
+  {id:61,trl:0,cat:"Bases de Conhecimento",tipo:"Estudo prospectivo",desc:"Estudo prospectivo para captação e delineamento de tendências, ameaças e oportunidades relacionadas ao milheto como planta forrageira no estado de Minas Gerais.",resp:"SARA DE ALMEIDA RIOS"},
+  {id:62,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação de 30 extensionistas, técnicos, líderes regionais e agentes multiplicadores nos conceitos e manejo de cultivares de milheto para pastejo, silagem e cobertura, para MG.",resp:"MARCO AURELIO NOCE"},
+  {id:91,trl:0,cat:"Tecnologias",tipo:"Metodologia técnico-científica",desc:"Nova metodologia usando Inteligência Artificial para fenotipagem e seleção de sorgo resistente a pulgão do sorgo (Melanaphis sorghi).",resp:"SIMONE MARTINS MENDES"},
+  {id:92,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Sequências gênicas e promotores associados à resistência ao pulgão do sorgo (Melanaphis sorghi), depositadas no NCBI.",resp:"JURANDIR VIEIRA DE MAGALHAES"},
+  {id:98,trl:0,cat:"Bases de Conhecimento",tipo:"Banco de Dados",desc:"Banco de dados com informações sobre caracterização de 25 genótipos de sorgo granífero da coleção de trabalho do PMG Sorgo quanto à produção de etanol. Armazenado no Redape.",resp:"MARIA LUCIA FERREIRA SIMEONE"},
+  {id:103,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Genes codificadores de proteínas nematicidas presentes no genoma de estirpes de Bacillus eficientes no controle de fitonematoides no sistema soja-milho.",resp:"UBIRACI GOMES DE PAULA LANA"},
+  {id:105,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação e atualização tecnológica de agentes multiplicadores — disseminação de boas práticas agronômicas na região centro-noroeste de MG.",resp:"FREDERICO JOSE EVANGELISTA BOTELHO"},
+  {id:108,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação de 30 técnicos, produtores rurais e estudantes em boas práticas agronômicas (plantio direto, rotação, consórcio lavoura-capim) com foco em sustentabilidade e carbono no solo — Sete Lagoas/MG.",resp:"ARYSTIDES RESENDE SILVA"},
+  {id:118,trl:0,cat:"Bases de Conhecimento",tipo:"Base Biotecnológica",desc:"Sequências gênicas A, B, C, D e E de B. thuringiensis com ação inseticida comprovada (exceto Vip3Aa, Cry1Ac e Cry1F) para desenvolvimento futuro de plantas transgênicas alternativas.",resp:"FERNANDO HERCOS VALICENTE"},
+  {id:147,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação de extensionistas e produtores da região de Três Marias/MG em controle biológico de pragas, sustentabilidade e eficiência em sistemas integrados.",resp:"IVAN CRUZ"},
+  {id:151,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Capacitação",desc:"Capacitação de 200 técnicos e produtores em técnicas de produção sustentável de sorgo para etanol, por meio de palestras, dias de campo e seminários no MS e MA.",resp:"FREDERICO JOSE EVANGELISTA BOTELHO"},
+  {id:152,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Estudo prospectivo",desc:"Diagnóstico regional de áreas potenciais (prioritárias e marginais) para ampliação da produção de sorgo nos estados do Mato Grosso do Sul e Maranhão.",resp:"DANIEL PEREIRA GUIMARAES"},
+  {id:154,trl:0,cat:"Inserção em Ambientes de Inovação",tipo:"Arranjo institucional",desc:"Cooperação técnica entre a Embrapa Milho e Sorgo e a Multitécnica para estruturação de rede de comunicação e TT da Embrapa para a Central Mineira — nova fronteira agropecuária do Brasil.",resp:"SARA DE ALMEIDA RIOS"}
+];
+
+const trlClass = t => t===7?'trl7':t===6?'trl6':t===5?'trl5':t===4?'trl4':t===3?'trl3':'trl0';
+const trlLabel = t => t===0?'N/A':('TRL '+t);
+
+function buildCard(d){
+  const badge    = `<span class="badge ${trlClass(d.trl)}">${trlLabel(d.trl)}</span>`;
+  const tipoBadge= `<span class="badge-tipo">${d.tipo}</span>`;
+  const star     = d.trl >= 6 ? `<span class="star">★</span>` : '';
+  const dest     = d.destaque ? `<span class="destaque-tag">${d.destaque}</span>` : '';
+  return `<div class="card">
+    <div class="card-meta">${badge}${tipoBadge}${star}</div>
+    <div class="card-desc">${d.desc}</div>
+    <div class="card-footer">
+      <div class="resp-label">Resp.: ${d.resp}</div>
+      ${dest}
+    </div>
+  </div>`;
+}
+
+function cardsGrid(html){ return `<div class="cards-grid">${html}</div>`; }
+
+let currentTab = 'launch';
+let activeFilters = new Set(['Todos']);
+
+function showTab(tab){
+  currentTab = tab;
+  const tabOrder = ['launch','pipeline','insights','events','all'];
+  document.querySelectorAll('.tab').forEach((t,i)=>{ t.classList.toggle('active', tabOrder[i]===tab); });
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  renderTab(tab);
+}
+
+function renderTab(tab){
+  if(tab==='launch'){
+    const items = data.filter(d=>d.cat==='Tecnologias'&&d.trl>=6).sort((a,b)=>b.trl-a.trl);
+    const g7=items.filter(d=>d.trl===7), g6=items.filter(d=>d.trl===6);
+    let html='';
+    if(g7.length) html+=`<div class="tier-label">★ TRL 7 — maturidade máxima <span class="count-badge">${g7.length} ativos</span></div>`+cardsGrid(g7.map(buildCard).join(''));
+    if(g6.length) html+=`<div class="tier-label">TRL 6 — prontos para uso e divulgação <span class="count-badge">${g6.length} ativos</span></div>`+cardsGrid(g6.map(buildCard).join(''));
+    document.getElementById('list').innerHTML = html || '<div class="empty">—</div>';
+
+  } else if(tab==='pipeline'){
+    const items = data.filter(d=>d.cat==='Tecnologias'&&d.trl>=4&&d.trl<=5).sort((a,b)=>b.trl-a.trl);
+    const g5=items.filter(d=>d.trl===5), g4=items.filter(d=>d.trl===4);
+    let html='';
+    if(g5.length) html+=`<div class="tier-label">TRL 5 — próximos à validação final <span class="count-badge">${g5.length} ativos</span></div>`+cardsGrid(g5.map(buildCard).join(''));
+    if(g4.length) html+=`<div class="tier-label">TRL 4 — em validação <span class="count-badge">${g4.length} ativos</span></div>`+cardsGrid(g4.map(buildCard).join(''));
+    document.getElementById('list2').innerHTML = html || '<div class="empty">—</div>';
+
+  } else if(tab==='insights'){
+    buildInsights();
+
+  } else if(tab==='events'){
+    const caps   = data.filter(d=>d.tipo==='Capacitação'||d.tipo==='Capacitação e TT');
+    const launch = data.filter(d=>d.cat==='Tecnologias'&&d.trl>=6);
+    const pipe   = data.filter(d=>d.cat==='Tecnologias'&&d.trl>=4&&d.trl<=5&&d.destaque);
+    let html = '';
+    html += `<div class="insight-box events-intro"><p><strong>💡 Como usar esta aba:</strong> As sugestões abaixo são pontos de partida para o planejamento de ações de TT e comunicação em 2026. Os ativos TRL 6–7 são os mais prontos para eventos de lançamento, dias de campo e notas à imprensa. Ativos TRL 4–5 com destaque podem compor mesas de inovação e rodadas de negócio.</p></div>`;
+    html += `<div class="tier-label">🎤 Dias de campo e eventos de lançamento — TRL 6–7 <span class="count-badge">${launch.length} ativos</span></div>`;
+    html += `<div class="insight-box" style="margin-bottom:16px"><p>Estes ativos estão prontos para divulgação ampla. Recomenda-se organizar dias de campo temáticos por cultura (milho, sorgo) e eixo estratégico (bioinsumos, cultivares, bioenergia, carbono). Candidatos a nota à imprensa e negociação de licenciamento.</p></div>`;
+    html += cardsGrid(launch.map(buildCard).join(''));
+    html += `<div class="tier-label">🔬 Mesas de inovação e eventos técnicos — Pipeline TRL 4–5 com destaque <span class="count-badge">${pipe.length} ativos</span></div>`;
+    html += `<div class="insight-box" style="margin-bottom:16px"><p>Ativos em maturação com ângulos de comunicação fortes. Indicados para simpósios, rodadas de negócio e mídia especializada — geram expectativa e posicionam a Embrapa como referência antes do lançamento formal.</p></div>`;
+    html += cardsGrid(pipe.map(buildCard).join(''));
+    html += `<div class="tier-label">📚 Capacitações previstas <span class="count-badge">${caps.length} ações</span></div>`;
+    html += `<div class="warn-box" style="margin-bottom:16px"><p>Estas ações de capacitação já estão previstas nos projetos. Avalie oportunidades de ampliar cobertura midiática e articular com parceiros regionais.</p></div>`;
+    html += cardsGrid(caps.map(buildCard).join(''));
+    document.getElementById('list3').innerHTML = html;
+
+  } else if(tab==='all'){
+    buildFilters();
+    applyFilters();
+  }
+}
+
+function buildFilters(){
+  const cats = ['Todos','Tecnologias','Bases de Conhecimento','Inserção em Ambientes de Inovação'];
+  document.getElementById('filters').innerHTML = cats.map(c=>
+    `<button class="filter-btn ${activeFilters.has(c)?'on':''}" onclick="toggleFilter('${c}')">${c}</button>`
+  ).join('');
+}
+
+function toggleFilter(f){
+  if(f==='Todos'){ activeFilters=new Set(['Todos']); }
+  else {
+    activeFilters.delete('Todos');
+    if(activeFilters.has(f)) activeFilters.delete(f); else activeFilters.add(f);
+    if(activeFilters.size===0) activeFilters.add('Todos');
+  }
+  buildFilters();
+  applyFilters();
+}
+
+function applyFilters(){
+  const items = activeFilters.has('Todos') ? data : data.filter(d=>activeFilters.has(d.cat));
+  const sorted = items.sort((a,b)=>b.trl-a.trl);
+  document.getElementById('list4').innerHTML = sorted.length
+    ? cardsGrid(sorted.map(buildCard).join(''))
+    : '<div class="empty">Nenhum resultado para este filtro.</div>';
+}
+
+function buildInsights(){
+  document.getElementById('insights-content').innerHTML = `
+<div class="insight-box"><p><strong>🚀 4 ativos em TRL 7 — prioridade máxima:</strong> O portfólio 2026 conta com 4 tecnologias em TRL máximo: (1) Práticas de Carne Carbono Neutro no Oeste da Bahia, (2) Híbrido de sorgo granífero resistente a pulgão, (3) Bioinseticida Baculovirus para S. frugiperda e (4) Bioinseticida Bt1641 de amplo espectro (H. armigera, S. frugiperda e C. includens). São candidatos imediatos a notas técnicas, eventos de lançamento e negociações de licenciamento.</p></div>
+<div class="insight-box"><p><strong>🧫 Cluster de bioinsumos — maior portfólio em maturação:</strong> A Embrapa Milho e Sorgo lidera em 2026 um dos maiores clusters de bioinsumos já previstos: bioinseticidas Baculovirus (TRL 6–7), Bt1641 (TRL 7), bionematicida Bacillus (TRL 4), inoculantes micorrízicos para milho e mandioca (TRL 4–5) e biopesticida formulado duplo Bt (TRL 4). O mercado de bioinsumos está em expansão acelerada — recomenda-se ação integrada de comunicação com narrativa de posicionamento como hub de controle biológico.</p></div>
+<div class="insight-box"><p><strong>🌿 Sorgo com portfólio diverso e maduro:</strong> O sorgo é a cultura mais estratégica do portfólio 2026: cultivares de grãos (TRL 6–7), forrageiro (TRL 6), sacarino e biomassa para bioenergia (TRL 6), bioativo para saúde humana (TRL 6), resistente a ergot para região sul (TRL 5) e plant-based para food tech (TRL 4). Recomenda-se criar narrativa de posicionamento do sorgo como cultura resiliente, multipropósito e do futuro. Alta sinergia com pautas ESG.</p></div>
+<div class="insight-box"><p><strong>🌽 Milho com maior volume absoluto:</strong> Com mais de 25 cultivares e processos em diferentes TRLs, milho é a cultura mais representada. Para TT e comunicação, recomenda-se agrupar por eixo temático — transgênicos (VTPRO, BTMAX), resistência a enfezamentos, biocombustíveis (etanol), agricultura familiar — e não cultivar a cultivar. A narrativa temática tem maior impacto e clareza para o público-alvo.</p></div>
+<div class="insight-box"><p><strong>🌡️ Carbono e sustentabilidade — eixo transversal forte:</strong> O portfólio 2026 possui múltiplos ativos com narrativa de carbono e sustentabilidade: Carne Carbono Neutro (TRL 7), Carne Baixo Carbono (TRL 6), sistema de milho silagem regenerativo (TRL 5), mapeamento de pastagens degradadas (TRL 6) e práticas ILP/plantio direto (TRL 5). Este eixo transversal tem alto apelo institucional, ESG e para gestores públicos.</p></div>
+<div class="insight-box"><p><strong>💻 Software de irrigação — diferencial digital:</strong> O software web para monitoramento de pivô central (TRL 5–6) com dados integrados de solo, clima e fisiologia vegetal é um ativo digital relevante. Tem apelo para eventos de tecnologia no agro, mídia especializada e potencial de parceria com startups de agtech. Comunicação pode explorar o diferencial da transformação digital na gestão hídrica.</p></div>
+<div class="insight-box"><p><strong>🍔 Sorgo plant-based e hidrogel — nichos premium:</strong> Dois ativos de sorgo para food tech e farmacêutico (TRL 3–4) — hambúrguer plant-based e hidrogel de amido — têm ângulo de comunicação além do agro tradicional. São inovações com apelo para indústria alimentícia, saúde e nutracêuticos. Recomenda-se divulgação segmentada para veículos de inovação, alimentos funcionais e nutrição.</p></div>
+<div class="warn-box"><p><strong>🔬 Nióbio — diferencial nacional único:</strong> Herbicida à base de Nióbio (TRL 4) e fungicida de nanocompósitos de Nióbio (TRL 5) são ativos singulares. O Brasil é o maior produtor mundial de nióbio — a narrativa de soberania tecnológica e uso de matéria-prima nacional é muito forte. Indicados para eventos de inovação, parceria com setor mineral e comunicação de impacto.</p></div>
+<div class="warn-box"><p><strong>⚠️ Ativos sem TRL (TRL = 0) — infraestrutura de inovação:</strong> Cerca de 50 resultados têm TRL 0 (bases de conhecimento, coleções biológicas, bancos de dados). Não são tecnologias transferíveis de imediato, mas podem ser comunicados como infraestrutura de P&D da Embrapa — os bancos de germoplasma (Alelo) têm boa narrativa de conservação e ciência aberta para público institucional e acadêmico.</p></div>
+`;
+}
+
+// ── METRICS ──────────────────────────────────────────────────────────────────
+const tec = data.filter(d=>d.cat==='Tecnologias');
+const met = {
+  total:  data.length,
+  tec:    tec.length,
+  launch: data.filter(d=>d.cat==='Tecnologias'&&d.trl>=6).length,
+  pipe:   tec.filter(d=>d.trl>=4&&d.trl<=5).length
+};
+
+document.getElementById('metrics').innerHTML = `
+<div class="metric-card"><span class="metric-icon">📦</span><div class="metric-val">${met.total}</div><div class="metric-lbl">Total de resultados previstos</div></div>
+<div class="metric-card"><span class="metric-icon">⚙️</span><div class="metric-val">${met.tec}</div><div class="metric-lbl">Categoria Tecnologias</div></div>
+<div class="metric-card"><span class="metric-icon">🚀</span><div class="metric-val">${met.launch}</div><div class="metric-lbl">Prontos para lançamento (TRL 6–7)</div></div>
+<div class="metric-card"><span class="metric-icon">🔬</span><div class="metric-val">${met.pipe}</div><div class="metric-lbl">Pipeline TT (TRL 4–5)</div></div>
+`;
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+const legendColors = [
+  {label:'Tecnologias',color:'#2a8a4a'},
+  {label:'Bases de Conhecimento',color:'#1a6fc9'},
+  {label:'Inserção em Ambientes de Inovação',color:'#d4962a'},
+];
+document.getElementById('chartLegend').innerHTML = legendColors.map(l=>
+  `<span class="legend-item"><span class="legend-dot" style="background:${l.color}"></span>${l.label}</span>`
+).join('');
+
+const trlLabels = ['TRL 0 (N/A)','TRL 3','TRL 4','TRL 5','TRL 6','TRL 7'];
+const trlVals   = [0, 3, 4, 5, 6, 7];
+const countByCat = (cat,trl) => data.filter(d=>d.cat===cat&&d.trl===trl).length;
+const tecData  = trlVals.map(t=>countByCat('Tecnologias',t));
+const baseData = trlVals.map(t=>countByCat('Bases de Conhecimento',t));
+const insData  = trlVals.map(t=>countByCat('Inserção em Ambientes de Inovação',t));
+const totals   = trlVals.map((_,i)=>tecData[i]+baseData[i]+insData[i]);
+const order    = totals.map((_,i)=>i).sort((a,b)=>totals[b]-totals[a]);
+
+new Chart(document.getElementById('chart2').getContext('2d'), {
+  type:'bar',
+  data:{
+    labels: order.map(i=>trlLabels[i]),
+    datasets:[
+      {label:'Tecnologias',             data:order.map(i=>tecData[i]),  backgroundColor:'rgba(42,138,74,0.82)',  borderRadius:5},
+      {label:'Bases de Conhecimento',   data:order.map(i=>baseData[i]), backgroundColor:'rgba(26,111,201,0.82)', borderRadius:5},
+      {label:'Inserção em Ambientes de Inovação', data:order.map(i=>insData[i]), backgroundColor:'rgba(212,150,42,0.82)', borderRadius:5}
+    ]
+  },
+  options:{
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        mode:'index',
+        callbacks:{ footer:(items)=>`Total: ${items.reduce((s,i)=>s+i.raw,0)} resultados` }
+      }
+    },
+    scales:{
+      x:{stacked:true, grid:{color:'rgba(0,0,0,0.04)'}, ticks:{stepSize:5,font:{size:11,family:'DM Sans'}},
+         title:{display:true,text:'Nº de resultados',font:{size:11,family:'DM Sans'},color:'#4a6352'}},
+      y:{stacked:true, grid:{display:false}, ticks:{font:{size:12,family:'DM Sans'}}}
+    }
+  }
+});
+
+renderTab('launch');
+</script>
+</body>
+</html>
